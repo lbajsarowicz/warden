@@ -111,6 +111,12 @@ fi
 [[ ${WARDEN_VARNISH} -eq 1 ]] \
     && appendEnvPartialIfExists "varnish"
 
+if [[ ${WARDEN_QUICK_TUNNEL:-0} -eq 1 ]]; then
+    appendEnvPartialIfExists "quick-tunnel"
+    [[ ${WARDEN_VARNISH} -eq 1 ]] \
+        && appendEnvPartialIfExists "quick-tunnel-varnish"
+fi
+
 [[ ${WARDEN_RABBITMQ} -eq 1 ]] \
     && appendEnvPartialIfExists "rabbitmq"
 
