@@ -193,10 +193,8 @@ case "${WARDEN_PARAMS[0]}" in
             fatal "WARDEN_QUICK_TUNNEL is not enabled for this project. Add WARDEN_QUICK_TUNNEL=1 to your .env file."
         fi
 
-        ## extract the quick tunnel URL from container logs
-        QUICK_URL=$(${DOCKER_COMPOSE_COMMAND} \
-            --project-directory "${WARDEN_ENV_PATH}" -p "${WARDEN_ENV_NAME}" \
-            logs quick-tunnel 2>/dev/null | grep -oE 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' | tail -1)
+        ## extract the quick tunnel URL from container logs via warden env
+        QUICK_URL=$("${WARDEN_BIN}" env logs quick-tunnel 2>/dev/null | grep -oE 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' | tail -1)
 
         if [[ -n "${QUICK_URL}" ]]; then
             echo ""
