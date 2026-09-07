@@ -100,53 +100,32 @@ function regeneratePMAConfig() {
   fi
 }
 
-function regenerateCloudflaredConfig() {
-  if [[ -f "${WARDEN_HOME_DIR}/.env" ]]; then
-    eval "$(grep "^WARDEN_CLOUDFLARED_TUNNEL_ID" "${WARDEN_HOME_DIR}/.env" | tr -d '\r')"
+function loadShareConfig() {
+  loadEnvFile "${WARDEN_HOME_DIR}/.env" "WARDEN_SHARE_"
+  WARDEN_SHARE_PROVIDER="${WARDEN_SHARE_PROVIDER:-}"
+  export WARDEN_SHARE_PROVIDER
+
+  if [[ -n "${WARDEN_SHARE_PROVIDER}" ]]; then
+    if [[ ! -f "${WARDEN_DIR}/utils/share/${WARDEN_SHARE_PROVIDER}.sh" ]]; then
+      local available="" candidate
+      for candidate in "${WARDEN_DIR}"/utils/share/*.sh; do
+        candidate="${candidate##*/}"
+        available="${available}${candidate%.sh} "
+      done
+      fatal "Unknown share provider '${WARDEN_SHARE_PROVIDER}'. Available: ${available% }"
+    fi
+
+    # shellcheck source=/dev/null
+    source "${WARDEN_DIR}/utils/share/${WARDEN_SHARE_PROVIDER}.sh"
   fi
+}
 
-  if [[ -z "${WARDEN_CLOUDFLARED_TUNNEL_ID:-}" ]]; then
-    return 0
+function shareDomains() {
+  docker ps --filter "label=dev.warden.share.domain" --format '{{.Label "dev.warden.share.domain"}}' 2>/dev/null | sort -u
+}
+
+function regenerateShareConfig() {
+  if [[ -n "${WARDEN_SHARE_PROVIDER:-}" ]]; then
+    shareProviderRegenerateConfig
   fi
-
-  ## find credentials file (either credentials.json or <uuid>.json)
-  local credentials_file=""
-  if [[ -f "${WARDEN_HOME_DIR}/etc/cloudflared/${WARDEN_CLOUDFLARED_TUNNEL_ID}.json" ]]; then
-    credentials_file="/home/nonroot/.cloudflared/${WARDEN_CLOUDFLARED_TUNNEL_ID}.json"
-  elif [[ -f "${WARDEN_HOME_DIR}/etc/cloudflared/credentials.json" ]]; then
-    credentials_file="/home/nonroot/.cloudflared/credentials.json"
-  else
-    warning "Cloudflared credentials file not found. Run 'warden cf create' first."
-    return 0
-  fi
-
-  >&2 echo "Regenerating cloudflared configuration..."
-  local config_dir="${WARDEN_HOME_DIR}/etc/cloudflared"
-  mkdir -p "${config_dir}"
-
-  local config_file="${config_dir}/config.yml"
-  {
-    echo "tunnel: ${WARDEN_CLOUDFLARED_TUNNEL_ID}"
-    echo "credentials-file: ${credentials_file}"
-    echo ""
-    echo "ingress:"
-
-    for domain in $(docker ps --filter "label=dev.warden.cf.domain" --format '{{.Label "dev.warden.cf.domain"}}' 2>/dev/null | sort -u); do
-      echo "  - hostname: ${domain}"
-      echo "    service: https://traefik"
-      echo "    originRequest:"
-      echo "      noTLSVerify: true"
-      echo "  - hostname: \"*.${domain}\""
-      echo "    service: https://traefik"
-      echo "    originRequest:"
-      echo "      noTLSVerify: true"
-    done
-
-    echo "  - service: http_status:404"
-  } > "${config_file}"
-
-  >&2 echo "Cloudflared configuration regenerated."
-
-  ## restart (or start if stopped) the cloudflared container if it exists
-  docker restart cloudflared 2>/dev/null || true
 }
