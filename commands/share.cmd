@@ -14,7 +14,7 @@ trap '' ERR
 loadShareConfig
 
 if [[ -z "${WARDEN_SHARE_PROVIDER}" ]]; then
-    fatal "No share provider configured. Set WARDEN_SHARE_PROVIDER=cloudflared in ${WARDEN_HOME_DIR}/.env"
+    fatal "No share provider configured. Set WARDEN_SHARE_PROVIDER in ${WARDEN_HOME_DIR}/.env (available: $(shareAvailableProviders))"
 fi
 
 case "${WARDEN_PARAMS[0]}" in
@@ -39,7 +39,7 @@ case "${WARDEN_PARAMS[0]}" in
         fi
 
         regenerateShareConfig
-        echo "Share configuration regenerated and provider restarted."
+        echo "Share configuration updated."
         ;;
     *)
         SHARE_PROVIDER_STATUS=0

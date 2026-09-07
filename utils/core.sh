@@ -100,6 +100,16 @@ function regeneratePMAConfig() {
   fi
 }
 
+function shareAvailableProviders() {
+  local providers="" candidate
+  for candidate in "${WARDEN_DIR}"/utils/share/*.sh; do
+    candidate="${candidate##*/}"
+    providers="${providers}${candidate%.sh} "
+  done
+
+  echo "${providers% }"
+}
+
 function loadShareConfig() {
   loadEnvFile "${WARDEN_HOME_DIR}/.env" "WARDEN_SHARE_"
   WARDEN_SHARE_PROVIDER="${WARDEN_SHARE_PROVIDER:-}"
@@ -107,12 +117,7 @@ function loadShareConfig() {
 
   if [[ -n "${WARDEN_SHARE_PROVIDER}" ]]; then
     if [[ ! -f "${WARDEN_DIR}/utils/share/${WARDEN_SHARE_PROVIDER}.sh" ]]; then
-      local available="" candidate
-      for candidate in "${WARDEN_DIR}"/utils/share/*.sh; do
-        candidate="${candidate##*/}"
-        available="${available}${candidate%.sh} "
-      done
-      fatal "Unknown share provider '${WARDEN_SHARE_PROVIDER}'. Available: ${available% }"
+      fatal "Unknown share provider '${WARDEN_SHARE_PROVIDER}'. Available: $(shareAvailableProviders)"
     fi
 
     # shellcheck source=/dev/null

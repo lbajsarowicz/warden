@@ -57,17 +57,18 @@ function shareProviderRegenerateConfig() {
     return 0
   fi
 
-  >&2 echo "Regenerating cloudflared configuration..."
   mkdir -p "${CLOUDFLARED_DIR}"
 
-  local domain
+  local rendered
+  rendered="$(mktemp "${CLOUDFLARED_DIR}/config.yml.XXXXXX")"
+  chmod 644 "${rendered}"
   {
     echo "tunnel: ${WARDEN_CLOUDFLARED_TUNNEL_ID}"
     echo "credentials-file: ${credentials_file}"
     echo ""
     echo "ingress:"
 
-    for domain in $(shareDomains); do
+    shareDomains | while IFS= read -r domain; do
       echo "  - hostname: ${domain}"
       echo "    service: https://traefik"
       echo "    originRequest:"
@@ -79,8 +80,17 @@ function shareProviderRegenerateConfig() {
     done
 
     echo "  - service: http_status:404"
-  } > "${CLOUDFLARED_DIR}/config.yml"
+  } > "${rendered}"
 
+  ## every project's `env up|down|start|stop` lands here; restarting the shared
+  ## agent when nothing changed would drop the tunnel for unrelated projects
+  if cmp -s "${rendered}" "${CLOUDFLARED_DIR}/config.yml"; then
+    rm -f "${rendered}"
+    return 0
+  fi
+
+  >&2 echo "Regenerating cloudflared configuration..."
+  mv "${rendered}" "${CLOUDFLARED_DIR}/config.yml"
   >&2 echo "Cloudflared configuration regenerated."
 
   docker restart cloudflared 2>/dev/null || true
