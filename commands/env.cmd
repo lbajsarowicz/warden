@@ -103,6 +103,17 @@ if [[ -n "${TRAEFIK_PUBLIC_DOMAIN:-}" ]]; then
     fi
 fi
 
+if [[ -n "${WARDEN_SHARE:-}" ]]; then
+    loadProjectShareConfig
+
+    if [[ "${WARDEN_PARAMS[0]}" == "up" ]] || [[ "${WARDEN_PARAMS[0]}" == "start" ]]; then
+        shareProviderRequireConfig
+    fi
+
+    shareProviderPrepare
+    appendEnvPartialIfExists "share-${WARDEN_SHARE}"
+fi
+
 [[ ${WARDEN_DB} -eq 1 ]] \
     && appendEnvPartialIfExists "db"
 

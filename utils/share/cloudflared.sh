@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 [[ ! ${WARDEN_DIR} ]] && >&2 echo -e "\033[31mThis script is not intended to be run directly!\033[0m" && exit 1
 
+# shellcheck disable=SC2034  # read by shareProviderScope from the file, never sourced
+SHARE_PROVIDER_SCOPE=global
+# shellcheck disable=SC2034  # read by shareProviderEnvPrefix from the file, never sourced
+SHARE_PROVIDER_ENV_PREFIX=WARDEN_CLOUDFLARED_
+
+unset WARDEN_CLOUDFLARED_TUNNEL_ID
 loadEnvFile "${WARDEN_HOME_DIR}/.env" "WARDEN_IMAGE_REPOSITORY|WARDEN_CLOUDFLARED_"
 
 CLOUDFLARED_DIR="${WARDEN_HOME_DIR}/etc/cloudflared"
