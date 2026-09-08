@@ -109,6 +109,15 @@ function assertHostname() {
   fi
 }
 
+function assertDnsLabel() {
+  local value="${1}" varname="${2}"
+  local dnsLabelRegex='^[a-z0-9]([a-z0-9-]*[a-z0-9])?$'
+
+  if [[ ! "${value}" =~ $dnsLabelRegex ]]; then
+    fatal "${varname} must be a single DNS label (got '${value}')."
+  fi
+}
+
 ## reads the scope declaration without sourcing the provider, so an unusable
 ## provider can still be listed in an error message
 function shareProviderScope() {

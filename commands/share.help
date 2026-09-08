@@ -33,6 +33,11 @@ WARDEN_USAGE=$(cat <<EOF
                     WARDEN_NGROK_AUTHTOKEN in ~/.warden/.env
                     optional: WARDEN_NGROK_DOMAIN in the project .env (reserved/static domain)
 
+  tailscale         Tailscale Serve on your tailnet, requires a Tailscale account
+                    WARDEN_TAILSCALE_AUTHKEY (reusable auth key) in ~/.warden/.env
+                    optional: WARDEN_TAILSCALE_HOSTNAME in the project .env (default: the environment name)
+                    optional: WARDEN_TAILSCALE_FUNNEL=1 in the project .env (public internet, off by default)
+
 \033[33mOptions:\033[0m
   -h, --help        Display this help menu
 
