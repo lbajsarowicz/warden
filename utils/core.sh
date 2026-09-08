@@ -100,6 +100,15 @@ function regeneratePMAConfig() {
   fi
 }
 
+function assertHostname() {
+  local value="${1}" varname="${2}"
+  local hostnameRegex='^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$'
+
+  if [[ ! "${value}" =~ $hostnameRegex ]]; then
+    fatal "${varname} must be a valid hostname (got '${value}')."
+  fi
+}
+
 ## reads the scope declaration without sourcing the provider, so an unusable
 ## provider can still be listed in an error message
 function shareProviderScope() {

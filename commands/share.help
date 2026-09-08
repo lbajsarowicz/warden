@@ -29,6 +29,10 @@ WARDEN_USAGE=$(cat <<EOF
   quick             Cloudflare Quick Tunnel, no account needed
                     (no subcommands; the URL changes on every start)
 
+  ngrok             ngrok agent v3, requires an ngrok account
+                    WARDEN_NGROK_AUTHTOKEN in ~/.warden/.env
+                    optional: WARDEN_NGROK_DOMAIN in the project .env (reserved/static domain)
+
 \033[33mOptions:\033[0m
   -h, --help        Display this help menu
 
